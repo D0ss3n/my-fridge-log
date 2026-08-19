@@ -62,6 +62,12 @@ function Index() {
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<"hemma" | "slut">("hemma");
 
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [authSubmitting, setAuthSubmitting] = useState(false);
+
   useEffect(() => {
     setLocalItems(loadItems());
     setLoaded(true);
