@@ -36,7 +36,7 @@ export const listItems = createServerFn({ method: "GET" })
 
 export const upsertItems = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => z.array(itemSchema).parse(data))
+  .validator(z.array(itemSchema))
   .handler(async ({ context, data }) => {
     const rows = data.map((item) => ({
       id: item.id,
