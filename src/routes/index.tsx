@@ -481,9 +481,11 @@ function Index() {
           ))}
           {list.length === 0 && (
             <li className="rounded-2xl border border-dashed bg-card/50 px-4 py-10 text-center text-sm text-muted-foreground">
-              {tab === "hemma"
-                ? "Inget här ännu – lägg till din första vara ovan."
-                : "Inga slutvaror ännu."}
+              {filterCategory !== "Alla"
+                ? `Inga ${tab === "hemma" ? "varor" : "slutvaror"} i kategorin ${filterCategory.toLowerCase()}.`
+                : tab === "hemma"
+                  ? "Inget här ännu – lägg till din första vara ovan."
+                  : "Inga slutvaror ännu."}
             </li>
           )}
         </ul>
