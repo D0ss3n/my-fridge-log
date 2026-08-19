@@ -445,6 +445,73 @@ function Index() {
           )}
         </ul>
       </div>
+
+      <Dialog open={authOpen} onOpenChange={setAuthOpen}>
+        <DialogContent className="rounded-2xl sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{authMode === "login" ? "Logga in" : "Skapa konto"}</DialogTitle>
+            <DialogDescription>
+              Synka dina varor mellan enheter med ett kostnadsfritt konto.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleEmailAuth} className="mt-2 space-y-3">
+            <Input
+              type="email"
+              placeholder="E-post"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="h-11 rounded-xl"
+            />
+            <Input
+              type="password"
+              placeholder="Lösenord"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+              className="h-11 rounded-xl"
+            />
+            <Button type="submit" className="h-11 w-full rounded-xl" disabled={authSubmitting}>
+              {authSubmitting
+                ? "Vänta..."
+                : authMode === "login"
+                  ? "Logga in"
+                  : "Skapa konto"}
+            </Button>
+          </form>
+
+          <div className="relative py-2">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <span className="relative flex justify-center text-xs uppercase text-muted-foreground">
+              <span className="bg-card px-2">eller</span>
+            </span>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 w-full rounded-xl"
+            onClick={handleGoogleSignIn}
+          >
+            Fortsätt med Google
+          </Button>
+
+          <p className="text-center text-sm text-muted-foreground">
+            {authMode === "login" ? "Inget konto?" : "Har du redan ett konto?"}{" "}
+            <button
+              type="button"
+              onClick={() => setAuthMode(authMode === "login" ? "signup" : "login")}
+              className="text-primary underline hover:no-underline"
+            >
+              {authMode === "login" ? "Skapa konto" : "Logga in"}
+            </button>
+          </p>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
