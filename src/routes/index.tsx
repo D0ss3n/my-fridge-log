@@ -9,6 +9,13 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   CATEGORIES,
   loadItems,
   saveItems,
@@ -18,7 +25,7 @@ import {
   type Category,
   type Item,
 } from "@/lib/fridge";
-import { useAuth, signOut } from "@/lib/auth";
+import { useAuth, signOut, signInWithEmail, signUpWithEmail } from "@/lib/auth";
 import { listItems, upsertItems, deleteItem } from "@/lib/fridge.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { lovable } from "@/integrations/lovable";
