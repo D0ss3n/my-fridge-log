@@ -15,6 +15,7 @@ const itemSchema = z.object({
 
 export const listItems = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
+  .validator(z.undefined())
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("fridge_items")
