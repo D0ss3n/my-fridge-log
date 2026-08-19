@@ -30,6 +30,11 @@ export function saveItems(items: Item[]) {
   window.localStorage.setItem(KEY, JSON.stringify(items));
 }
 
+export function clearItems() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(KEY);
+}
+
 export function newId() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
