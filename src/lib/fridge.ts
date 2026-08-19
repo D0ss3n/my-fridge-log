@@ -1,6 +1,21 @@
-export type Category = "Kylskåp" | "Frys" | "Skafferi";
+export type Category =
+  | "Kylskåp"
+  | "Frys"
+  | "Skafferi"
+  | "Grönsaker"
+  | "Frukt"
+  | "Mejeri"
+  | "Dryck";
 
-export const CATEGORIES: Category[] = ["Kylskåp", "Frys", "Skafferi"];
+export const CATEGORIES: Category[] = [
+  "Kylskåp",
+  "Frys",
+  "Skafferi",
+  "Grönsaker",
+  "Frukt",
+  "Mejeri",
+  "Dryck",
+];
 
 export type Item = {
   id: string;

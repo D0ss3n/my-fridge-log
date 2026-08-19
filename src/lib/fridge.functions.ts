@@ -1,8 +1,17 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import type { Category } from "@/lib/fridge";
 
-const categorySchema = z.enum(["Kylskåp", "Frys", "Skafferi"]);
+const categorySchema = z.enum([
+  "Kylskåp",
+  "Frys",
+  "Skafferi",
+  "Grönsaker",
+  "Frukt",
+  "Mejeri",
+  "Dryck",
+]);
 
 const itemSchema = z.object({
   id: z.string().uuid(),
@@ -28,7 +37,7 @@ export const listItems = createServerFn({ method: "GET" })
       id: row.id,
       name: row.name,
       qty: row.qty,
-      category: row.category as "Kylskåp" | "Frys" | "Skafferi",
+      category: row.category as Category,
       addedAt: new Date(row.added_at).getTime(),
       finishedAt: row.finished_at ? new Date(row.finished_at).getTime() : undefined,
     }));
