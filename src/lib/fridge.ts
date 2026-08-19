@@ -8,7 +8,7 @@ export type Item = {
   qty: number;
   category: Category;
   addedAt: number;
-  finishedAt?: number;
+  finishedAt?: number | undefined;
 };
 
 const KEY = "kylkoll.items.v1";
