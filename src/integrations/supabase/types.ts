@@ -14,7 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      fridge_items: {
+        Row: {
+          added_at: string
+          category: string
+          finished_at: string | null
+          id: string
+          name: string
+          qty: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          added_at?: string
+          category?: string
+          finished_at?: string | null
+          id?: string
+          name: string
+          qty?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          added_at?: string
+          category?: string
+          finished_at?: string | null
+          id?: string
+          name?: string
+          qty?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
