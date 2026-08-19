@@ -62,26 +62,26 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
+  --radius: 1rem;
+  --background: oklch(0.982 0.014 120);
+  --foreground: oklch(0.26 0.045 155);
+  --card: oklch(0.998 0.005 120);
+  --card-foreground: oklch(0.26 0.045 155);
+  --popover: oklch(0.998 0.005 120);
+  --popover-foreground: oklch(0.26 0.045 155);
+  --primary: oklch(0.58 0.15 155);
+  --primary-foreground: oklch(0.99 0.01 150);
+  --secondary: oklch(0.94 0.035 140);
+  --secondary-foreground: oklch(0.32 0.06 155);
+  --muted: oklch(0.955 0.02 130);
+  --muted-foreground: oklch(0.52 0.035 150);
+  --accent: oklch(0.9 0.09 95);
+  --accent-foreground: oklch(0.3 0.06 90);
+  --destructive: oklch(0.6 0.19 25);
+  --destructive-foreground: oklch(0.99 0.01 90);
+  --border: oklch(0.9 0.025 140);
+  --input: oklch(0.9 0.025 140);
+  --ring: oklch(0.58 0.15 155);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -132,6 +132,11 @@
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
@@ -140,5 +145,24 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+  }
+}
+
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    background-image: radial-gradient(
+        circle at 12% 10%,
+        oklch(0.93 0.06 150 / 0.55),
+        transparent 45%
+      ),
+      radial-gradient(circle at 88% 0%, oklch(0.94 0.07 95 / 0.5), transparent 40%);
+    background-attachment: fixed;
+  }
+
+  h1,
+  h2 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
   }
 }
