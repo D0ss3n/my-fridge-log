@@ -210,7 +210,7 @@ function Index() {
     }
   }
 
-  async function handleSignIn() {
+  async function handleGoogleSignIn() {
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });
@@ -219,6 +219,27 @@ function Index() {
       return;
     }
     if (result.redirected) return;
+    setAuthOpen(false);
+  }
+
+  async function handleEmailAuth(e: React.FormEvent) {
+    e.preventDefault();
+    setAuthSubmitting(true);
+    const { error } =
+      authMode === "login"
+        ? await signInWithEmail(email, password)
+        : await signUpWithEmail(email, password);
+    setAuthSubmitting(false);
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
+    toast.success(authMode === "login" ? "Du är inloggad" : "Konto skapat – du är inloggad");
+    setAuthOpen(false);
+    setEmail("");
+    setPassword("");
   }
 
   async function handleSignOut() {
