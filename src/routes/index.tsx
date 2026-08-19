@@ -141,9 +141,20 @@ function Index() {
     [items],
   );
 
+  const filteredHome = useMemo(
+    () => home.filter((i) => filterCategory === "Alla" || i.category === filterCategory),
+    [home, filterCategory],
+  );
+  const filteredGone = useMemo(
+    () => gone.filter((i) => filterCategory === "Alla" || i.category === filterCategory),
+    [gone, filterCategory],
+  );
+
   const q = normalize(query);
-  const list = (tab === "hemma" ? home : gone).filter((i) => !q || normalize(i.name).includes(q));
-  const exactHome = q ? home.find((i) => normalize(i.name).includes(q)) : undefined;
+  const list = (tab === "hemma" ? filteredHome : filteredGone).filter(
+    (i) => !q || normalize(i.name).includes(q),
+  );
+  const exactHome = q ? filteredHome.find((i) => normalize(i.name).includes(q)) : undefined;
 
   function setItems(updater: (prev: Item[]) => Item[]) {
     if (isCloud) {
