@@ -36,7 +36,7 @@ export const listItems = createServerFn({ method: "GET" })
       id: row.id,
       name: row.name,
       qty: row.qty,
-      category: row.category as "Kylskåp" | "Frys" | "Skafferi",
+      category: row.category as Category,
       addedAt: new Date(row.added_at).getTime(),
       finishedAt: row.finished_at ? new Date(row.finished_at).getTime() : undefined,
     }));
