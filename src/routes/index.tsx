@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Check, Minus, Plus, RotateCcw, Search, Trash2, Refrigerator } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Check, Minus, Plus, RotateCcw, Search, Trash2, Refrigerator, LogIn, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -8,14 +9,26 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   CATEGORIES,
   loadItems,
   saveItems,
+  clearItems,
   newId,
   normalize,
   type Category,
   type Item,
 } from "@/lib/fridge";
+import { useAuth, signOut, signInWithEmail, signUpWithEmail } from "@/lib/auth";
+import { listItems, upsertItems, deleteItem } from "@/lib/fridge.functions";
+import { useServerFn } from "@tanstack/react-start";
+import { lovable } from "@/integrations/lovable";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -31,27 +44,95 @@ export const Route = createFileRoute("/")({
         property: "og:description",
         content: "Din digitala kylskåpslista: lägg in varor, pricka av när de tar slut.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Index,
 });
 
 function Index() {
-  const [items, setItems] = useState<Item[]>([]);
+  const { user, loading: authLoading } = useAuth();
+  const isCloud = !!user;
+
+  const [localItems, setLocalItems] = useState<Item[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [name, setName] = useState("");
   const [category, setCategory] = useState<Category>("Kylskåp");
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<"hemma" | "slut">("hemma");
 
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [authSubmitting, setAuthSubmitting] = useState(false);
+
   useEffect(() => {
-    setItems(loadItems());
+    setLocalItems(loadItems());
     setLoaded(true);
   }, []);
 
   useEffect(() => {
-    if (loaded) saveItems(items);
-  }, [items, loaded]);
+    if (loaded && !isCloud) saveItems(localItems);
+  }, [localItems, loaded, isCloud]);
+
+  const queryClient = useQueryClient();
+  const fetchList = useServerFn(listItems);
+  const doUpsert = useServerFn(upsertItems);
+  const doDelete = useServerFn(deleteItem);
+
+  const cloudQuery = useQuery({
+    queryKey: ["fridge-items", user?.id],
+    queryFn: async () => {
+      const items = await fetchList({});
+      return items;
+    },
+    enabled: isCloud,
+    staleTime: 0,
+  });
+
+  const upsertMutation = useMutation({
+    mutationFn: async (items: Item[]) => {
+      await doUpsert({ data: items });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["fridge-items", user?.id] });
+    },
+    onError: (err) => {
+      toast.error("Kunde inte spara i molnet: " + (err instanceof Error ? err.message : String(err)));
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await doDelete({ data: { id } });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["fridge-items", user?.id] });
+    },
+    onError: (err) => {
+      toast.error("Kunde inte ta bort: " + (err instanceof Error ? err.message : String(err)));
+    },
+  });
+
+  // Migrate local items to cloud once after first login
+  useEffect(() => {
+    if (!isCloud || !loaded || cloudQuery.isLoading || cloudQuery.isError) return;
+    const local = loadItems();
+    if (local.length === 0) return;
+    if ((cloudQuery.data ?? []).length > 0) return;
+
+    const migrate = async () => {
+      await doUpsert({ data: local });
+      clearItems();
+      queryClient.invalidateQueries({ queryKey: ["fridge-items", user?.id] });
+      toast.success("Dina lokala varor har sparats i molnet");
+    };
+    migrate();
+  }, [isCloud, loaded, cloudQuery.data, cloudQuery.isLoading, cloudQuery.isError, doUpsert, queryClient, user?.id]);
+
+  const items: Item[] = isCloud ? (cloudQuery.data ?? []) : localItems;
 
   const home = useMemo(() => items.filter((i) => !i.finishedAt), [items]);
   const gone = useMemo(
@@ -62,6 +143,16 @@ function Index() {
   const q = normalize(query);
   const list = (tab === "hemma" ? home : gone).filter((i) => !q || normalize(i.name).includes(q));
   const exactHome = q ? home.find((i) => normalize(i.name).includes(q)) : undefined;
+
+  function setItems(updater: (prev: Item[]) => Item[]) {
+    if (isCloud) {
+      const current = cloudQuery.data ?? [];
+      const next = updater(current);
+      upsertMutation.mutate(next);
+    } else {
+      setLocalItems(updater);
+    }
+  }
 
   function addItem(e: React.FormEvent) {
     e.preventDefault();
@@ -112,7 +203,48 @@ function Index() {
   }
 
   function remove(id: string) {
-    setItems((prev) => prev.filter((i) => i.id !== id));
+    if (isCloud) {
+      deleteMutation.mutate(id);
+    } else {
+      setLocalItems((prev) => prev.filter((i) => i.id !== id));
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    if (result.error) {
+      toast.error("Inloggning misslyckades: " + result.error.message);
+      return;
+    }
+    if (result.redirected) return;
+    setAuthOpen(false);
+  }
+
+  async function handleEmailAuth(e: React.FormEvent) {
+    e.preventDefault();
+    setAuthSubmitting(true);
+    const { error } =
+      authMode === "login"
+        ? await signInWithEmail(email, password)
+        : await signUpWithEmail(email, password);
+    setAuthSubmitting(false);
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
+    toast.success(authMode === "login" ? "Du är inloggad" : "Konto skapat – du är inloggad");
+    setAuthOpen(false);
+    setEmail("");
+    setPassword("");
+  }
+
+  async function handleSignOut() {
+    await signOut();
+    toast.success("Du är utloggad");
   }
 
   return (
@@ -123,13 +255,39 @@ function Index() {
           <span className="flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
             <Refrigerator className="size-6" />
           </span>
-          <div>
+          <div className="min-w-0 flex-1">
             <h1 className="text-3xl font-semibold">Kylkoll</h1>
             <p className="text-sm text-muted-foreground">
               Vet alltid vad du har hemma – även när du står i butiken.
             </p>
           </div>
+          {!authLoading && (
+            <div className="flex shrink-0 items-center gap-2">
+              {user ? (
+                <>
+                  <span className="hidden max-w-[12rem] truncate text-sm text-muted-foreground sm:inline">
+                    {user.email}
+                  </span>
+                  <Button size="sm" variant="outline" className="rounded-full" onClick={handleSignOut}>
+                    <LogOut className="size-4" />
+                    <span className="hidden sm:inline">Logga ut</span>
+                  </Button>
+                </>
+              ) : (
+                <Button size="sm" className="rounded-full" onClick={() => setAuthOpen(true)}>
+                  <LogIn className="size-4" />
+                  Logga in
+                </Button>
+              )}
+            </div>
+          )}
         </header>
+
+        {isCloud && (
+          <p className="mb-4 text-xs text-muted-foreground">
+            Synkad med molnet – dina varor följer med till alla enheter.
+          </p>
+        )}
 
         <section className="rounded-3xl border bg-card p-5 shadow-sm">
           <form onSubmit={addItem} className="flex flex-col gap-3">
@@ -287,6 +445,73 @@ function Index() {
           )}
         </ul>
       </div>
+
+      <Dialog open={authOpen} onOpenChange={setAuthOpen}>
+        <DialogContent className="rounded-2xl sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{authMode === "login" ? "Logga in" : "Skapa konto"}</DialogTitle>
+            <DialogDescription>
+              Synka dina varor mellan enheter med ett kostnadsfritt konto.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleEmailAuth} className="mt-2 space-y-3">
+            <Input
+              type="email"
+              placeholder="E-post"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="h-11 rounded-xl"
+            />
+            <Input
+              type="password"
+              placeholder="Lösenord"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+              className="h-11 rounded-xl"
+            />
+            <Button type="submit" className="h-11 w-full rounded-xl" disabled={authSubmitting}>
+              {authSubmitting
+                ? "Vänta..."
+                : authMode === "login"
+                  ? "Logga in"
+                  : "Skapa konto"}
+            </Button>
+          </form>
+
+          <div className="relative py-2">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <span className="relative flex justify-center text-xs uppercase text-muted-foreground">
+              <span className="bg-card px-2">eller</span>
+            </span>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 w-full rounded-xl"
+            onClick={handleGoogleSignIn}
+          >
+            Fortsätt med Google
+          </Button>
+
+          <p className="text-center text-sm text-muted-foreground">
+            {authMode === "login" ? "Inget konto?" : "Har du redan ett konto?"}{" "}
+            <button
+              type="button"
+              onClick={() => setAuthMode(authMode === "login" ? "signup" : "login")}
+              className="text-primary underline hover:no-underline"
+            >
+              {authMode === "login" ? "Skapa konto" : "Logga in"}
+            </button>
+          </p>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
