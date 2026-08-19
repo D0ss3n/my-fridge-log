@@ -61,6 +61,7 @@ function Index() {
   const [category, setCategory] = useState<Category>("Kylskåp");
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<"hemma" | "slut">("hemma");
+  const [filterCategory, setFilterCategory] = useState<Category | "Alla">("Alla");
 
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
