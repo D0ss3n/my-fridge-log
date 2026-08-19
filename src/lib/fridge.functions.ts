@@ -2,7 +2,15 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
-const categorySchema = z.enum(["Kylskåp", "Frys", "Skafferi"]);
+const categorySchema = z.enum([
+  "Kylskåp",
+  "Frys",
+  "Skafferi",
+  "Grönsaker",
+  "Frukt",
+  "Mejeri",
+  "Dryck",
+]);
 
 const itemSchema = z.object({
   id: z.string().uuid(),
