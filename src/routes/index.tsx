@@ -274,7 +274,7 @@ function Index() {
                   </Button>
                 </>
               ) : (
-                <Button size="sm" className="rounded-full" onClick={handleSignIn}>
+                <Button size="sm" className="rounded-full" onClick={() => setAuthOpen(true)}>
                   <LogIn className="size-4" />
                   Logga in
                 </Button>
