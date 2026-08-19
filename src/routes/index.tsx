@@ -362,6 +362,37 @@ function Index() {
           )}
         </section>
 
+        <section className="mt-4">
+          <p className="mb-2 text-xs font-medium text-muted-foreground">Visa kategori</p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setFilterCategory("Alla")}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                filterCategory === "Alla"
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "bg-background text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              Alla
+            </button>
+            {CATEGORIES.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setFilterCategory(c)}
+                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                  filterCategory === c
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "bg-background text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </section>
+
         <Tabs
           value={tab}
           onValueChange={(v) => setTab(v as "hemma" | "slut")}
@@ -369,10 +400,10 @@ function Index() {
         >
           <TabsList className="rounded-xl">
             <TabsTrigger value="hemma" className="rounded-lg">
-              Hemma ({home.length})
+              Hemma ({filteredHome.length})
             </TabsTrigger>
             <TabsTrigger value="slut" className="rounded-lg">
-              Slut ({gone.length})
+              Slut ({filteredGone.length})
             </TabsTrigger>
           </TabsList>
         </Tabs>
