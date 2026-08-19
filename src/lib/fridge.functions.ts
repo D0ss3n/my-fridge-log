@@ -58,7 +58,7 @@ export const upsertItems = createServerFn({ method: "POST" })
 
 export const deleteItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => z.object({ id: z.string().uuid() }).parse(data))
+  .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ context, data }) => {
     const { error } = await context.supabase
       .from("fridge_items")
