@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Minus, Plus, RotateCcw, Search, Trash2, Refrigerator, LogIn, LogOut } from "lucide-react";
+import { Check, Minus, Plus, RotateCcw, Search, Trash2, Refrigerator, LogIn, LogOut, BellRing } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -149,6 +149,8 @@ function Index() {
     () => gone.filter((i) => filterCategory === "Alla" || i.category === filterCategory),
     [gone, filterCategory],
   );
+
+  const lowStock = useMemo(() => home.filter((i) => i.qty <= 1), [home]);
 
   const q = normalize(query);
   const list = (tab === "hemma" ? filteredHome : filteredGone).filter(
@@ -362,6 +364,27 @@ function Index() {
           )}
         </section>
 
+        {lowStock.length > 0 && (
+          <section className="mt-4 rounded-2xl border border-accent bg-accent/40 p-4">
+            <p className="flex items-center gap-2 text-sm font-medium text-accent-foreground">
+              <BellRing className="size-4" />
+              Dags att handla – {lowStock.length} vara{lowStock.length > 1 ? "r" : ""} börjar ta slut
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {lowStock.map((i) => (
+                <button
+                  key={i.id}
+                  type="button"
+                  onClick={() => setFilterCategory(i.category)}
+                  className="rounded-full border bg-background px-3 py-1 text-xs font-medium hover:bg-muted"
+                >
+                  {i.name} · {i.qty} kvar
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
         <section className="mt-4">
           <p className="mb-2 text-xs font-medium text-muted-foreground">Visa kategori</p>
           <div className="flex flex-wrap gap-2">
@@ -420,9 +443,16 @@ function Index() {
                 >
                   {item.name}
                 </p>
-                <Badge variant="secondary" className="mt-1 rounded-full text-[11px] font-normal">
-                  {item.category}
-                </Badge>
+                <div className="mt-1 flex flex-wrap items-center gap-1">
+                  <Badge variant="secondary" className="rounded-full text-[11px] font-normal">
+                    {item.category}
+                  </Badge>
+                  {!item.finishedAt && item.qty <= 1 && (
+                    <Badge className="rounded-full text-[11px] font-normal">
+                      <BellRing className="mr-1 size-3" /> Köp snart
+                    </Badge>
+                  )}
+                </div>
               </div>
 
               {!item.finishedAt ? (
