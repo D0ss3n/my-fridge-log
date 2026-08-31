@@ -651,6 +651,18 @@ function Index() {
           </p>
         </DialogContent>
       </Dialog>
+
+      <BarcodeScanner
+        open={scanMode !== null}
+        onOpenChange={(v) => !v && setScanMode(null)}
+        title={scanMode === "finish" ? "Skanna vara som tagit slut" : "Skanna in vara"}
+        description={
+          scanMode === "finish"
+            ? "Rikta kameran mot streckkoden så markeras varan som slut."
+            : "Rikta kameran mot streckkoden så fylls varans namn i automatiskt."
+        }
+        onResult={(r) => handleScanResult(scanMode ?? "add", r)}
+      />
     </main>
   );
 }
