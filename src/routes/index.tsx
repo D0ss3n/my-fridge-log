@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Minus, Plus, RotateCcw, Search, Trash2, Refrigerator, LogIn, LogOut, BellRing } from "lucide-react";
+import { Check, Minus, Plus, RotateCcw, Search, Trash2, Refrigerator, LogIn, LogOut, BellRing, Barcode } from "lucide-react";
+import { BarcodeScanner, type ScanResult } from "@/components/BarcodeScanner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -68,6 +69,10 @@ function Index() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [authSubmitting, setAuthSubmitting] = useState(false);
+
+  const [scanMode, setScanMode] = useState<"add" | "finish" | null>(null);
+
+
 
   useEffect(() => {
     setLocalItems(loadItems());
@@ -187,6 +192,47 @@ function Index() {
     }
     setName("");
   }
+
+  function addByName(n: string) {
+    const existing = home.find((i) => normalize(i.name) === normalize(n));
+    if (existing) {
+      setItems((prev) => prev.map((i) => (i.id === existing.id ? { ...i, qty: i.qty + 1 } : i)));
+      toast.success(`${existing.name} – nu ${existing.qty + 1} st hemma`);
+    } else {
+      setItems((prev) => [
+        { id: newId(), name: n, qty: 1, category, addedAt: Date.now() },
+        ...prev,
+      ]);
+      toast.success(`${n} tillagd i ${category.toLowerCase()}`);
+    }
+  }
+
+  function handleScanResult(mode: "add" | "finish", { code, name: found }: ScanResult) {
+    if (mode === "add") {
+      if (found) {
+        addByName(found);
+      } else {
+        setName(code);
+        toast(`Hittade ingen vara för ${code}`, {
+          description: "Skriv namnet själv – koden är ifylld i fältet.",
+        });
+      }
+      return;
+    }
+
+    const target = found
+      ? home.find((i) => normalize(i.name).includes(normalize(found)) || normalize(found).includes(normalize(i.name)))
+      : undefined;
+    if (target) {
+      markFinished(target);
+    } else {
+      toast.error(
+        found ? `${found} finns inte i din hemmalista.` : `Hittade ingen vara för koden ${code}.`,
+      );
+    }
+  }
+
+
 
   function changeQty(id: string, delta: number) {
     setItems((prev) =>
@@ -318,6 +364,24 @@ function Index() {
               />
               <Button type="submit" className="h-11 rounded-xl px-5">
                 <Plus /> Lägg till
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10 rounded-xl"
+                onClick={() => setScanMode("add")}
+              >
+                <Barcode /> Skanna in vara
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10 rounded-xl"
+                onClick={() => setScanMode("finish")}
+              >
+                <Barcode /> Skanna slut
               </Button>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -587,6 +651,18 @@ function Index() {
           </p>
         </DialogContent>
       </Dialog>
+
+      <BarcodeScanner
+        open={scanMode !== null}
+        onOpenChange={(v) => !v && setScanMode(null)}
+        title={scanMode === "finish" ? "Skanna vara som tagit slut" : "Skanna in vara"}
+        description={
+          scanMode === "finish"
+            ? "Rikta kameran mot streckkoden så markeras varan som slut."
+            : "Rikta kameran mot streckkoden så fylls varans namn i automatiskt."
+        }
+        onResult={(r) => handleScanResult(scanMode ?? "add", r)}
+      />
     </main>
   );
 }
