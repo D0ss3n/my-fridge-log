@@ -70,6 +70,10 @@ function Index() {
   const [password, setPassword] = useState("");
   const [authSubmitting, setAuthSubmitting] = useState(false);
 
+  const [scanMode, setScanMode] = useState<"add" | "finish" | null>(null);
+
+
+
   useEffect(() => {
     setLocalItems(loadItems());
     setLoaded(true);
