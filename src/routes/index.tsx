@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Minus, Plus, RotateCcw, Search, Trash2, Refrigerator, LogIn, LogOut, BellRing } from "lucide-react";
+import { Check, Minus, Plus, RotateCcw, Search, Trash2, Refrigerator, LogIn, LogOut, BellRing, Barcode } from "lucide-react";
+import { BarcodeScanner, type ScanResult } from "@/components/BarcodeScanner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
