@@ -367,6 +367,24 @@ function Index() {
               </Button>
             </div>
             <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10 rounded-xl"
+                onClick={() => setScanMode("add")}
+              >
+                <Barcode /> Skanna in vara
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10 rounded-xl"
+                onClick={() => setScanMode("finish")}
+              >
+                <Barcode /> Skanna slut
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
               {CATEGORIES.map((c) => (
                 <button
                   key={c}
